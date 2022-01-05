@@ -176,7 +176,7 @@ class Reinforce():
         # Azuriranje parametara
         [update_iteration(t) for t in range(T-1,-1,-1)] # range(T-1,-1,-1)
 
-    def policy(self, state: str = None, enc: bool = False, fixed: bool = True):
+    def policy(self, state: str = None, enc: bool = False, fixed: bool = False):
         """Politika u trenutnom stanju"""
         
         # Raspodela verovatnoce izbora akcije
