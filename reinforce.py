@@ -3,6 +3,8 @@ import random
 from simulator import *
 
 
+FEATURES = {(1,i):{action: 4*(i-1)+ia-10 for ia, action in enumerate(allowed_actions)} for i in range(1,6)}
+
 class Reinforce():
 
     def __init__(self, gamma: float = 0.9, lr: float = None):
@@ -15,7 +17,7 @@ class Reinforce():
         # Broj obelezja
         self.n_features = sample_features.shape[0]
         # Inicijalizacija parametara
-        self.theta = np.random.normal(size=sample_features.shape)*0.1
+        self.theta = np.random.normal(size=sample_features.shape)*0.01
         # Flag za promenljivu stopu obucavanja
         self.var_lr = True if lr is None else False
         # Stopa obucavanja
@@ -37,31 +39,17 @@ class Reinforce():
         # Novo stanje
         new_state = self.next_state(state, action)
 
-        # Prediktor 1: Manhattan distanca do nagrade
-        d1 = self.manhattan(new_state, 'B5')
-        # Prediktor 2: Manhattan distanca do kazne
-        d2 = self.manhattan(new_state, 'B3')
-        # Prediktor 3: Manhattan distanca do kazne
-        d3 = self.manhattan(new_state, 'B1')
-        
+        # Konverzija stanja u tuple
+        state = state if isinstance(state, tuple) else env_enc[state]
 
-        if self.manhattan(state, 'B5') == 1:
-            if action == 'down':
-                f1 = 0.91
-            else:
-                f1 = 0.03
-        elif min(self.manhattan(state,'B3'), self.manhattan(state,'B1')) == 1:
-            if action == 'up':
-                f1 = 0.91
-            else:
-                f1 = 0.03
-        else:
-            if action == 'right':
-                f1 = 0.91
-            else:
-                f1 = 0.03
+        # f1: Da li moze da pogine?
+        f1 = 1 if (self.manhattan(state, 'B1') == 1 or self.manhattan(state, 'B3') == 1) and action != 'up' else 0
+        # f2: Da li moze da osvoji nagradu?
+        f2 = 1 if self.manhattan(state, 'B5') == 1 and action == 'down' else 0
+        # f3: Da li se krece ka cilju?
+        f3 = new_state[1] - state[1]
 
-        return np.array([f1]).reshape(-1,1)
+        return np.array([f1,f2,f3]).reshape(-1,1)
 
     def next_state(self, state: str, action: str):
         """Metoda za odredjivanje sledeceg stanja deterministickog okruzenja """
@@ -149,6 +137,23 @@ class Reinforce():
 
         self.e += 1
 
+    def evaluate(self, N: int = 10):
+        """Metoda za estimaciju prosecne nagrade osvojene u jednoj epohi"""
+        # Ukupna osvojena nagrada
+        reward = 0
+        for i in range(N):
+            # Prolazak kroz jednu epohu
+            self.run_epoch()
+            # Sakupljanje nagrade
+            reward += self.episode[1]
+        # Uprosecavanje po epizodama
+        reward /= N
+        self.e -= N
+        # Verovatnoca obelezja
+        params = np.array([self.policy_distribution(f'A{i}') for i in range(1,6)])
+        print(f'Posecna nagrade po epizodi je {reward}')
+        return reward, params
+
     def update(self):
         logging.info('Azuriranje parametara')
         def update_iteration(t: int):
@@ -169,9 +174,9 @@ class Reinforce():
         gamma_t = np.array([self.gamma ** t for t in range(T)])
 
         # Azuriranje parametara
-        [update_iteration(t) for t in range(T)]
+        [update_iteration(t) for t in range(T-1,-1,-1)] # range(T-1,-1,-1)
 
-    def policy(self, state: str = None, enc: bool = False, fixed: bool = False):
+    def policy(self, state: str = None, enc: bool = False, fixed: bool = True):
         """Politika u trenutnom stanju"""
         
         # Raspodela verovatnoce izbora akcije
@@ -239,12 +244,13 @@ class Reinforce():
 
 
 
-        
-model = Reinforce()
-for i in range(50):
-    print(f'###################{i}##########################')
-    model.run_epoch()
-    model.update()
+# model = Reinforce()
+# for i in range(200):
+#     model.run_epoch()
+#     model.update()
 
-model.optimal_policy()
-print(model.theta)
+# model.optimal_policy()
+# print(model.theta)
+
+# from pprint import pprint
+# pprint(FEATURES)

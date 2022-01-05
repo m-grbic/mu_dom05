@@ -133,10 +133,10 @@ class Qlearner():
 
 
 
-model = Qlearner()
-model.learn()
-model.repeat_epochs(10)
-pprint(model.Qt[-1])
-print(model.e)
-model.optimal_policy()
-model.visualize()      
+# model = Qlearner()
+# model.learn()
+# model.repeat_epochs(10)
+# pprint(model.Qt[-1])
+# print(model.e)
+# model.optimal_policy()
+# model.visualize()      

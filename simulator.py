@@ -4,8 +4,8 @@ from pprint import pprint
 import logging
 
 
-logging.basicConfig(level=logging.INFO)
-
+logging.basicConfig()#level=logging.INFO
+logging.disabled = True
 
 # Enkoder okruzenja
 env_enc = {
