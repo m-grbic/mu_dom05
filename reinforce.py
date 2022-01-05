@@ -1,9 +1,16 @@
 import numpy as np
 import random
 from simulator import *
+import matplotlib.pyplot as plt
 
 
-FEATURES = {(1,i):{action: 4*(i-1)+ia-10 for ia, action in enumerate(allowed_actions)} for i in range(1,6)}
+policy2arrows = {
+    "up": r"\uparrow",
+    "down": r"\downarrow",
+    "left": r"\leftarrow",
+    "right": r"\rightarrow"
+}
+
 
 class Reinforce():
 
@@ -243,9 +250,68 @@ class Reinforce():
             print(f'U stanju {state} optimalna politika nalaze preduzimanje akcije {self.policy(state, fixed=True)}')
 
 
+def run_experiment(agent):
 
-# model = Reinforce()
-# for i in range(200):
+    # List parametara i prosecnih ukupnih nagrada
+    theta_lst, reward_lst, epochs = [],[],[]
+
+    def learn(agent):
+        """Simulacija epohe i ažuriranje parametara"""
+        agent.run_epoch()
+        agent.update()
+
+    # Obučavanje do konvergencije
+    stop = False
+    while not stop:
+        # Prolazak kroz 50 epoha
+        [learn(agent) for i in range(50)]
+        if len(epochs):
+            epochs.append(epochs[-1]+50)
+        else:
+            epochs.append(100)
+        
+        # Ispis optimalne politike
+        agent.optimal_policy()
+        
+        # Cuvanje vrednosti
+        reward, params = agent.evaluate()
+        reward_lst.append(reward)
+        theta_lst.append(params)
+        
+        # Provera rezultata
+        arg = input("Zavrsi obučavanje? [da/ne]")
+        arg = arg.strip('\n').strip(' ').lower()
+        if ('d' in arg) or ('a' in arg):
+            break
+
+    # Prikaz prosecne nagrade
+    fig, axes = plt.subplots(nrows=1,figsize=(16,6))
+    axes.plot(epochs, reward_lst)
+    axes.set_title('Prosečna ukupna nagrada koju agent osvaja tokom jedne epizode')
+    plt.ylabel('Uprosecena nagrada')
+    plt.xlabel('Broj epoha')
+    plt.grid()
+    plt.show()
+
+    # Konverzija u niz
+    theta_arr = np.array(theta_lst)
+
+    # Prikaz verovatnoca izbora akcije (parametri stanja i akcija)
+    fig, axes = plt.subplots(ncols=5, figsize=(25,8))
+    ax = axes.ravel()
+    l = ['-','--',':','-.']
+    for i in range(5):
+        for a in range(4):
+            ax[i].plot(epochs, theta_arr[:,i,a],linestyle=l[a], label= "$\\theta$A" + str(a+1) + f"${policy2arrows[action_dec[a]]}$")
+            ax[i].set_title(f'Stanje A{a+1}')
+            ax[i].legend()
+            ax[i].set_xlabel('Broj epoha')
+        ax[i].grid()
+    plt.show()
+
+
+# model = Reinforce(lr=0.6) # 0.2 - 0.6
+# for i in range(500):
 #     model.run_epoch()
 #     model.update()
 
@@ -253,4 +319,6 @@ class Reinforce():
 # print(model.theta)
 
 # from pprint import pprint
-# pprint(FEATURES)
+# pprint(FEATURES)n
+
+# run_experiment(Reinforce(lr=0.2))
