@@ -127,6 +127,7 @@ class Qlearner():
             ax[i].set_ylim([-1, 3])
             ax[i].set_title(f'Stanje {state} | $\pi$*({state})=${policy2arrows[self.optimal_action(state)]}$')
             ax[i].set_xlabel('Broj iteracija')
+            ax[i].grid()
             if i == 0:
                 ax[i].set_ylabel('Q-vrednost')
         plt.show()

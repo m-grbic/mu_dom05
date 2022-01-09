@@ -268,7 +268,7 @@ def run_experiment(agent):
         if len(epochs):
             epochs.append(epochs[-1]+50)
         else:
-            epochs.append(100)
+            epochs.append(50)
         
         # Ispis optimalne politike
         agent.optimal_policy()
@@ -288,8 +288,8 @@ def run_experiment(agent):
     fig, axes = plt.subplots(nrows=1,figsize=(16,6))
     axes.plot(epochs, reward_lst)
     axes.set_title('Prosečna ukupna nagrada koju agent osvaja tokom jedne epizode')
-    plt.ylabel('Uprosecena nagrada')
-    plt.xlabel('Broj epoha')
+    plt.ylabel('Prosečna nagrada po epizodi')
+    plt.xlabel('Broj epizoda')
     plt.grid()
     plt.show()
 
@@ -299,13 +299,15 @@ def run_experiment(agent):
     # Prikaz verovatnoca izbora akcije (parametri stanja i akcija)
     fig, axes = plt.subplots(ncols=5, figsize=(25,8))
     ax = axes.ravel()
+    plt.suptitle('Verovatnoće izbora akcije primenom softmax parametrizacije')
+    ax[0].set_ylabel('Verovatnoće izbora akcije')
     l = ['-','--',':','-.']
     for i in range(5):
         for a in range(4):
             ax[i].plot(epochs, theta_arr[:,i,a],linestyle=l[a], label= "$\\theta$A" + str(a+1) + f"${policy2arrows[action_dec[a]]}$")
             ax[i].set_title(f'Stanje A{a+1}')
             ax[i].legend()
-            ax[i].set_xlabel('Broj epoha')
+            ax[i].set_xlabel('Broj epizoda')
         ax[i].grid()
     plt.show()
 
